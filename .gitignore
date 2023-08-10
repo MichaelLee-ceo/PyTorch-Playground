@@ -1,0 +1,13 @@
+# ignore python cache
+__pycache__/
+
+# ignore dataset
+data/
+
+# ignore model weights
+checkpoint/
+*.pkt
+
+# training history
+runs/
+wandb/
