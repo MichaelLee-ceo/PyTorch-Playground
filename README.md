@@ -1,18 +1,23 @@
 # PyTorch implementation of some deep learning algorithms
-- Knowledge Distillation
-- Domain Adaptation
 
+- Domain Adaptation
+    - Domain Separation Networks (DSN)
+    - Domain Adversarial Training of Neural Networks (DANN)
+- Knowledge Distillation
+
+</br>
 
 ## Domain Adaptation
-### Domain Adversarial Training of Neural Networks
-- Source Dataset (MNIST)
+| Source Dataset (MNIST) | Target Dataset (MNIST-M) |
+| :-: | :-: |
+![MNIST](./Domain%20Adaptation/figures/mnist.png) | ![MNIST-M](./Domain%20Adaptation/figures/mnist_m.png) |
 
-![MNIST](./Domain%20Adaptation/figures/mnist.png)
+### Domain Separation Networks (DSN)
+| Shared_dim | Private_dim | Accuracy |
+| :-: | :-: | :-: |
+| 64 | 32 | 84.21% |
 
-- Target Dataset (MNIST-M)
-
-![MNIST-M](./Domain%20Adaptation/figures/mnist_m.png)
-
+### Domain Adversarial Training of Neural Networks (DANN)
 | | w/o Domain Adaptation | Domain Adaptation |
 | :-: | :-: | :-: |
 | Accuracy | 45% | 77% |
