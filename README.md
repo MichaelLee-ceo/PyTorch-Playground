@@ -16,6 +16,7 @@
 | Shared_dim | Private_dim | Accuracy |
 | :-: | :-: | :-: |
 | 64 | 32 | 84.21% |
+![t-SNE](./Domain%20Separation%20Networks/figures/tsne.png)
 
 ### Domain Adversarial Training of Neural Networks (DANN)
 | | w/o Domain Adaptation | Domain Adaptation |
