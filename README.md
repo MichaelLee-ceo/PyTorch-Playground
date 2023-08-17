@@ -17,12 +17,35 @@
 | :-: | :-: | :-: |
 | 64 | 32 | 84.21% |
 
-<img src="./Domain%20Separation%20Networks/figures/tsne.png" alt="s-SNE" width="500"/>
 
 ### Domain Adversarial Training of Neural Networks (DANN)
 | | w/o Domain Adaptation | Domain Adaptation |
 | :-: | :-: | :-: |
 | Accuracy | 45% | 77% |
+
+<table>
+  <thead>
+    <tr>
+      <th width="300px" align="text-center"> w/o Domain Adaptation </th>
+      <th width="300px" align="text-center"> DSN </th>
+      <th width="300px" align="text-center"> DANN </th>
+    </tr>
+  </thead>
+  <tbody>
+  <tr width="900px">
+    <td>
+        <img src="./Domain%20Adaptation/figures/tsne_no_da.png" width="250px">
+    </td>
+    <td>
+        <img src="./Domain%20Separation%20Networks/figures/tsne.png" width="250px">
+    </td>
+    <td>
+        <img src="./Domain%20Adaptation/figures/tsne_da.png" width="250px">
+    </td>
+  </tr>
+  </tbody>
+</table>
+
 
 </br>
 

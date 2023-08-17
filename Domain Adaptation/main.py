@@ -1,5 +1,6 @@
+import os
+import wandb
 import argparse
-import seaborn as sns
 from datetime import datetime
 from tqdm import tqdm
 import torch
@@ -11,19 +12,26 @@ from torchvision.utils import make_grid, save_image
 from model import MyNet
 from utils import *
 
-sns.set()
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--num_epochs', default=50, type=int)
 parser.add_argument('--batch_size', default=128, type=int)
 parser.add_argument('--lr', default=0.003, type=float)
 parser.add_argument('--seed', default=0, type=int)
+parser.add_argument('--ckpt_path', default="./checkpoint/", type=str)
 parser.add_argument('--domain_adaptation', action="store_true")
-parser.add_argument('--scheduler', default="constant", type=str)
+parser.add_argument('--scheduler', default="da", type=str)
 args = parser.parse_args()
 
 torch.manual_seed(args.seed)
+torch.cuda.manual_seed(args.seed)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+os.makedirs(args.ckpt_path, exist_ok=True)
+
+run = wandb.init(
+    project="Domain-Adaptation",
+    name=datetime.now().strftime("%Y-%m-%d_%H:%M:%S") + "_da_scheduler",
+    config=args,
+)
 
 num_epochs = args.num_epochs
 batch_size = args.batch_size
@@ -64,11 +72,11 @@ testLoader_1 = DataLoader(testset_1, batch_size=batch_size, shuffle=False)
 model = MyNet().to(device)
 optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4)
 lrScheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, verbose=True)
-domainScheduler = DomainScheduler(max_iter=num_epochs, alpha=10, constant=args.scheduler)
+domainScheduler = DomainScheduler(max_iter=num_epochs, alpha=10, scheduler=args.scheduler)
 
 state = {
     "acc": 0,
-    "model": model.state_dict(),
+    "model": model,
 }
 
 for epoch in range(num_epochs):
@@ -88,12 +96,23 @@ for epoch in range(num_epochs):
     target_acc = evaluate(model, testLoader_1, device, args)
     if target_acc > state["acc"]:
         state["acc"] = target_acc
-        state["model"] = model.state_dict()
+        state["model"] = model
     tqdm.write("[Target Dataset] Acc: {:.2f}".format(target_acc))
+
+    ''' Log to wandb '''
+    wandb.log({
+        "train_loss": train_loss,
+        "train_acc": train_acc,
+        "test_acc": test_acc,
+        "target_acc": target_acc,
+        "domain_loss": domain_loss,
+    })
+
+wandb.run.summary["best_target_acc"] = state["acc"]
 
 # save model
 if args.domain_adaptation:
-    torch.save(state["model"], "model_da.pkt")
+    torch.save(state, args.ckpt_path + "model_da.pth")
 else:
-    torch.save(state["model"], "model_source.pkt")
+    torch.save(state, args.ckpt_path + "model_source.pth")
 print("Best Acc: {:.2f}".format(state["acc"]))

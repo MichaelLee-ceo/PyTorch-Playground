@@ -35,11 +35,8 @@ class MyNet(nn.Module):
             nn.Linear(64, 1),
         )
 
-        self.avgpool = nn.AdaptiveAvgPool2d(output_size=(3, 3))
-    
     def forward(self, x):
         x = self.feature_extractor(x)
-        x = self.avgpool(x)
 
         x = x.view(x.size(0), -1)
         output = self.classifier(x)
