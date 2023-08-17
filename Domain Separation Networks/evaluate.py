@@ -43,5 +43,6 @@ model = {
     "Shared_encoder": ckpt["model"]["Shared_encoder"].to(device),
     "Shared_decoder": ckpt["model"]["Shared_decoder"].to(device)
 }
+best_acc = ckpt["acc"]
 
-visualize(model, testLoader_0, testLoader_1, device, args)
+visualize(model, testLoader_0, testLoader_1, device, best_acc, args)

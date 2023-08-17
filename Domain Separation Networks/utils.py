@@ -1,3 +1,4 @@
+import wandb
 import torch
 import torch.nn as nn
 from tqdm import tqdm
@@ -89,6 +90,7 @@ def train(model, dataLoader_0, dataLoader_1, optimizer, domain_scheduler, epoch,
     domain_classifier.train()
 
     weight = domain_scheduler(epoch)
+    wandb.log({"weight": weight})
     print("epoch: {}, weight: {}".format(epoch+1, weight))
 
     num_batches = min(len(dataLoader_0), len(dataLoader_1))
@@ -171,7 +173,7 @@ def evaluate(model, dataLoader, device, args):
     return total_correct / len(dataLoader.dataset)
 
 
-def visualize(model, testLoader_0, testLoader_1, device, args):
+def visualize(model, testLoader_0, testLoader_1, device, best_acc, args):
     source_encoder = model["Source_encoder"].eval()
     target_encoder = model["Target_encoder"].eval()
     shared_encoder = model["Shared_encoder"].eval()
@@ -211,7 +213,7 @@ def visualize(model, testLoader_0, testLoader_1, device, args):
     x_min, x_max = embedded.min(0), embedded.max(0)
     X_norm = (embedded - x_min) / (x_max - x_min)
     plt.figure(figsize=(8, 8))
-    plt.title("t-SNE on Source Domain & Target Domain")
+    plt.title("(DSN) t-SNE on MNIST & MNIST-M, {:.2f}%".format(best_acc*100))
     for i in range(X_norm.shape[0]):
         if i < (args.batch_size/2):
             plt.text(X_norm[i, 0], X_norm[i, 1], str(y[i].item()), color="dodgerblue", fontdict={'weight': 'bold', 'size': 10})
