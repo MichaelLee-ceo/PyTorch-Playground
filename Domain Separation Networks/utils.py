@@ -2,9 +2,12 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
 from PIL import Image
 import torch.nn.functional as F
 from torchvision.utils import make_grid, save_image
+from sklearn.manifold import TSNE
 
 ''' Convert a grayscale image to rgb '''
 class GrayscaleToRgb:
@@ -168,33 +171,51 @@ def evaluate(model, dataLoader, device, args):
     return total_correct / len(dataLoader.dataset)
 
 
-def visualize(model, source, target, args):
+def visualize(model, testLoader_0, testLoader_1, device, args):
     source_encoder = model["Source_encoder"].eval()
     target_encoder = model["Target_encoder"].eval()
     shared_encoder = model["Shared_encoder"].eval()
     shared_decoder = model["Shared_decoder"].eval()
-    batch_size = args.batch_size
-    figure_path = args.figure_path
+    source = next(iter(testLoader_0))
+    target = next(iter(testLoader_1))   
+
 
     with torch.no_grad():
         ''' Source Data '''
-        source_private = source_encoder(source)
-        source_shared = shared_encoder(source)
+        source_x, source_y = source[0].to(device), source[1]
+        source_private = source_encoder(source_x)
+        source_shared = shared_encoder(source_x)
 
         s_out_sh_re = shared_decoder(source_private + source_shared)
         s_sh_re = shared_decoder(source_shared)
         s_out_re = shared_decoder(source_private)
-        s_result = torch.cat([source, s_out_sh_re, s_sh_re, s_out_re])
-        save_image(make_grid(s_result, nrow=batch_size), figure_path + "source.png")
-        print("Source image saved to {}".format(figure_path + "source.png"))
+        s_result = torch.cat([source_x, s_out_sh_re, s_sh_re, s_out_re])
+        # save_image(make_grid(s_result, nrow=batch_size), figure_path + "source.png")
+        # print("Source image saved to {}".format(figure_path + "source.png"))
 
         ''' Target Data '''
-        target_private = target_encoder(target)
-        target_shared = shared_encoder(target)
+        target_x, target_y = target[0].to(device), target[1]
+        target_private = target_encoder(target_x)
+        target_shared = shared_encoder(target_x)
         
         t_out_sh_re = shared_decoder(target_private + target_shared)
         t_sh_re = shared_decoder(target_shared)
         t_out_re = shared_decoder(target_private)
-        t_result = torch.cat([target, t_out_sh_re, t_sh_re, t_out_re])
-        save_image(make_grid(t_result, nrow=batch_size), figure_path + "target.png")
-        print("Target image saved to {}".format(figure_path + "target.png"))
+        t_result = torch.cat([target_x, t_out_sh_re, t_sh_re, t_out_re])
+        # save_image(make_grid(t_result, nrow=batch_size), figure_path + "target.png")
+        # print("Target image saved to {}".format(figure_path + "target.png"))
+
+    embedded = TSNE(n_components=2).fit_transform(torch.cat([source_shared, target_shared]).cpu().numpy())
+    y = torch.cat([source_y, target_y]).cpu().numpy()
+
+    x_min, x_max = embedded.min(0), embedded.max(0)
+    X_norm = (embedded - x_min) / (x_max - x_min)
+    plt.figure(figsize=(8, 8))
+    plt.title("t-SNE on Source Domain & Target Domain")
+    for i in range(X_norm.shape[0]):
+        if i < (args.batch_size/2):
+            plt.text(X_norm[i, 0], X_norm[i, 1], str(y[i].item()), color="dodgerblue", fontdict={'weight': 'bold', 'size': 10})
+        else:
+            plt.text(X_norm[i, 0], X_norm[i, 1], str(y[i].item()), color="silver", fontdict={'weight': 'bold', 'size': 10})
+    plt.savefig(args.figure_path + "tsne.png")
+    print("Source image saved to {}".format(args.figure_path + "tsne.png"))

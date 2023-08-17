@@ -9,7 +9,7 @@ from model import *
 from utils import *
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--batch_size', default=8, type=int)
+parser.add_argument('--batch_size', default=256, type=int)
 parser.add_argument('--ckpt_path', default="./checkpoint/", type=str)
 parser.add_argument('--figure_path', default="./figures/", type=str)
 parser.add_argument('--seed', default=0, type=int)
@@ -44,7 +44,4 @@ model = {
     "Shared_decoder": ckpt["model"]["Shared_decoder"].to(device)
 }
 
-source = next(iter(testLoader_0))[0].to(device)
-target = next(iter(testLoader_1))[0].to(device)
-
-visualize(model, source, target, args)
+visualize(model, testLoader_0, testLoader_1, device, args)
